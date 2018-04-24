@@ -1,6 +1,7 @@
 import random
 
 class Coin:
+
     def __init__(self, rare = False, clean = True, heads = True, **kwargs):
 
         for key,value in kwargs.items():
@@ -35,10 +36,10 @@ class Coin:
         self.heads = choice
 
     def __str__(self):
-        if self.original_value > 1.00:
+        if self.original_value >= 1:
             return "${} Coin".format(int(self.original_value))
         else:
-            return "{}p Coin".format(int(orignal_value * 100))
+            return "{}p Coin".format(int(self.orignal_value * 100))
 
 class One_Pence(Coin):
     def __init__(self):
@@ -174,12 +175,10 @@ class Two_Pound(Coin):
         def clean(self):
             self.color = self.clean_color
 
-coins = [One_Pence, Two_Pence, Five_Pence, Ten_Pence, Twenty_Pence,
-        Fifty_Pence, One_Pound, Two_Pound]
+coins = [One_Pence(), Two_Pence(), Five_Pence(), Ten_Pence(), Twenty_Pence(), Fifty_Pence(), One_Pound(), Two_Pound()]
 
 for coin in coins:
-    arguements = [coin, coin.color, coin.value, coin.diameter, 
-    coin.thickness, coin.num_edges, coin.mass]
+    arguements = [coin, coin.color, coin.value, coin.diameter, coin.thickness, coin.num_edges, coin.mass]
 
-    string = "{} - Color:{}, value:{}, diamter:{}, thickness:{}, number of edges:{}, mass:{}".format(*arguements)
+    string = "{} - color:{}, value:{}, diamter(mm):{}, thickness(mm):{}, number of edges:{}, mass(g):{}".format(*arguements)
     print(string)
