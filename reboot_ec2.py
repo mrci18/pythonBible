@@ -7,13 +7,24 @@ Prints a list of EC2 IP's based on the tag key that you specify.
 If you use the -r or --reboot flag, it will also reboot the EC2's listed
 
 **************************************************************************************************************
-Usage: 
-./reset_ec2.py -t Name -r
+Prerequisite:
+Uses python2.7, if using python3 changed all occurences of 'raw_input()' to 'input()' 
+Must have aws cli installed
+Must have boto3 installed
+Must have aws secret key and id that can access EC2 information configured
 
 **************************************************************************************************************
+Usage: 
+./reboot_ec2.py -k Env -v Production -r
 
-Required arguements:
--t, --tag       The tag key you used on AWS. An example is Key: Name, Value: EC2Test1
+**************************************************************************************************************
+Required arguement:
+-k, --key       The tag key you used on AWS. An example is Key: Name, Value: EC2Test1
+
+**************************************************************************************************************
+Optional arguements:
+-v, --value     The tag value you used on AWS. An example is Key: Env, Value: Production
+-r, --reboot    This will reboot the EC2 instance with the applied filter
 
 **************************************************************************************************************
 """
@@ -27,30 +38,29 @@ def reboot_ec2(instance_id, instance_ip, reboot_key):
 
     response = client.reboot_instances(InstanceIds = [instance_id,])
 
-    #If status code is 200 then it will notify you if reboot was succesful
+    #If http status code is 200 then it will notify you if reboot was succesful
     if response["ResponseMetadata"]["HTTPStatusCode"] >= 200 and response["ResponseMetadata"]["HTTPStatusCode"] < 300:
-        print("EC2 with the public IP {} is being rebooted".format(instance_ip))
+        print("EC2 with the public IP {} has been rebooted".format(instance_ip))
 
     else:
         print("{} was not able to reboot".format(instance_ip))
 
-def get_instance_descriptions(tag_key, reboot_key):
+def get_instance_descriptions(tag_key, tag_value, reboot_key):
     client = boto3.client('ec2')
 
-    #List instances with the tag key of tag_key variable
+    #List instances with the tag key of tag_key variable, and tag_value(default is *)
     response = client.describe_instances(
         Filters=[
             {
                 'Name': 'tag:' + tag_key,
                 'Values': [
-                    '*'
+                    tag_value
                 ]
             },
         ]
 
     )
     reservations = response["Reservations"]
-
 
     #Iterate through each instance description and go through the one with assigned Public IP's
     for instances in reservations:
@@ -70,8 +80,9 @@ def get_instance_descriptions(tag_key, reboot_key):
 def parse_args():
     parser = argparse.ArgumentParser(description="Reboot EC2 instances based on key tag that you specify")
 
+    parser.add_argument("-k", "--key", dest="tag_key", type=str, action="store", help="input tag's key")
 
-    parser.add_argument("-t", "--tag", dest="tag_key", type=str, action="store", help="input tag's key")
+    parser.add_argument("-v", "--value", dest="tag_value", type=str, action="store", help="input tag's value")
 
     parser.add_argument("-r", "--reboot", dest="reboot_key", action="store_true", help="reboot ec2's ")
 
@@ -86,11 +97,15 @@ def main():
     else:
         tag_key = str(args.tag_key)
 
+    if args.tag_value:
+        tag_value = str(args.tag_value)
+    else:
+        tag_value = "*"
+
     if not args.reboot_key:
         print("\nBelow is a list of EC2 IP's that have the tag key: {}\nIf you wish to reboot the instances please rerun the script with -r or --reboot command flag\n".format(tag_key))
 
-
-    get_instance_descriptions(tag_key, args.reboot_key)
+    get_instance_descriptions(tag_key, tag_value, args.reboot_key)
 
 if __name__ == "__main__":
     main()
