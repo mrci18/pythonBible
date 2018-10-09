@@ -1,37 +1,43 @@
+#!/usr/bin/env python
+
+"""
+**************************************************************************************************************
+Description: 
+Prints a list of EC2 IP's based on the tag key that you specify. 
+If you use the -r or --reboot flag, it will also reboot the EC2's listed
+
+**************************************************************************************************************
+Usage: 
+./reset_ec2.py -t Name -r
+
+**************************************************************************************************************
+
+Required arguements:
+-t, --tag       The tag key you used on AWS. An example is Key: Name, Value: EC2Test1
+
+**************************************************************************************************************
+"""
+
 import boto3
 import argparse
 
 #Reboots ec2 instance_id's provided
-def reboot_ec2(instance_id, instance_ip):
+def reboot_ec2(instance_id, instance_ip, reboot_key):
     client = boto3.client('ec2')
-    response = client.reboot_instances(
-    InstanceIds=[
-        instance_id,
-    ]
-    )
 
+    response = client.reboot_instances(InstanceIds = [instance_id,])
+
+    #If status code is 200 then it will notify you if reboot was succesful
     if response["ResponseMetadata"]["HTTPStatusCode"] >= 200 and response["ResponseMetadata"]["HTTPStatusCode"] < 300:
-        print("EC2 with the public IP {} is being deleted".format(instance_ip))
+        print("EC2 with the public IP {} is being rebooted".format(instance_ip))
 
     else:
         print("{} was not able to reboot".format(instance_ip))
 
-# def get_public_ip(described_instances, reboot_key):
-#     for address in described_instances:
-#         if 'PublicIpAddress' in address:
-#             instance_id = address["InstanceId"]
-#             instance_ip = address['PublicIpAddress']
-            
-#             if reboot_key:
-#                 reboot_ec2(instance_id, instance_ip)
-                
-#             else:
-#                 print("{}".format(address['PublicIpAddress']))
-
-#List instances with the tag key of tag_key variable
 def get_instance_descriptions(tag_key, reboot_key):
     client = boto3.client('ec2')
 
+    #List instances with the tag key of tag_key variable
     response = client.describe_instances(
         Filters=[
             {
@@ -45,6 +51,8 @@ def get_instance_descriptions(tag_key, reboot_key):
     )
     reservations = response["Reservations"]
 
+
+    #Iterate through each instance description and go through the one with assigned Public IP's
     for instances in reservations:
         described_instances = instances['Instances'][0]
         if "PublicIpAddress" in described_instances:
@@ -52,13 +60,11 @@ def get_instance_descriptions(tag_key, reboot_key):
             instance_id = described_instances["InstanceId"]
             instance_ip = described_instances['PublicIpAddress']
 
+            #If -r or --reboot flag was used, call reboot func
             if reboot_key:
-                reboot_ec2(instance_id, instance_ip)
-                
+                reboot_ec2(instance_id, instance_ip, reboot_key) 
             else:
-                print("{}".format(described_instances['PublicIpAddress']))
-            
-        # get_public_ip(described_instances, reboot_key)
+                print("{}".format(described_instances['PublicIpAddress']))       
 
 #Arg parse for tag key and reboot
 def parse_args():
