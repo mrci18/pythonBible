@@ -5,6 +5,7 @@
 Description: 
 Prints a list of EC2 IP's based on the tag key that you specify. 
 If you use the -r or --reboot flag, it will also reboot the EC2's listed
+If you want to be more specific with your search then use the -v or --value flag to search for a specific tag value
 
 **************************************************************************************************************
 Prerequisite:
