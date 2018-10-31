@@ -10,4 +10,5 @@ if __name__ == "__main__":
         try:
             print(add_2(x))
         except Exception as err:
-            print("An exception happened " + str(err))
+            message = "{} - error, {} - type error, {} - error name".format(err, type(err), type(err).__name__)
+            print(message)
